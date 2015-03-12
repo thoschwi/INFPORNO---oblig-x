@@ -1,5 +1,3 @@
-(load "huffman.scm")
-
 ;;1. Diverse
 ;; a)
 (define (p-cons x y)
@@ -54,4 +52,4 @@
 (define (member? symbol list)
   (cond ((null? list) #f)
         ((eq? symbol (car list)) #t)
-        (else (member? symbol (cdr list)))))
+        (else (cdr list))))
