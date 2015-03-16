@@ -58,11 +58,13 @@
 
 ;; b)
 
-;; c)
+;; c) Iterativ losning av decode. 
+;; Tar vare paa hver lovnodes liste ved aa slaa den sammen med accumulator istedenfor at
+;; cons venter paa returverdien til de rekursive kallene.
 (define (decode-tail bits tree)
   (define (decode-2 bits current-branch accumulator)
     (if (null? bits)
-        (reverse accumulator)
+        (reverse accumulator) ;; Listen settes sammen baklengs og maa snus.
         (let ((next-branch
                (choose-branch (car bits) current-branch)))
           (if (leaf? next-branch)
@@ -76,3 +78,16 @@
 (decode sample-code sample-tree)
 (decode-tail sample-code sample-tree)
 ;; Begge returnerer 'ninjas fight ninjas by night'.
+
+;; e)
+(define (encode message tree)
+  (define (encode-1 message branch code)
+    (if (null? message)
+        (reverse code)
+        (cond ((leaf? branch) (encode-1 (cdr message) tree code))
+              ((member? (car message)(symbols (left-branch branch))) 
+               (encode-1 message (left-branch branch)(cons 0 code)))
+              (else (encode-1 message (right-branch branch)(cons 1 code))))))
+  (encode-1 message tree '()))
+           
+            
