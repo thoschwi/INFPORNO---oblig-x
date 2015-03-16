@@ -55,3 +55,24 @@
   (cond ((null? list) #f)
         ((eq? symbol (car list)) #t)
         (else (member? symbol (cdr list)))))
+
+;; b)
+
+;; c)
+(define (decode-tail bits tree)
+  (define (decode-2 bits current-branch accumulator)
+    (if (null? bits)
+        (reverse accumulator)
+        (let ((next-branch
+               (choose-branch (car bits) current-branch)))
+          (if (leaf? next-branch)
+              (decode-2 (cdr bits) tree 
+                        (cons (symbol-leaf next-branch) accumulator))
+              (decode-2 (cdr bits) next-branch accumulator)))))
+  (decode-2 bits tree '()))
+
+
+;; d)
+(decode sample-code sample-tree)
+(decode-tail sample-code sample-tree)
+;; Begge returnerer 'ninjas fight ninjas by night'.
