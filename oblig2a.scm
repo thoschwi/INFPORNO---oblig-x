@@ -95,8 +95,6 @@
 
 ;; f)
 
-;; Har vi gjort f riktig?
-
 (define (grow-huffman-tree freqs)
     (if (= (length freqs) 1)
         (car freqs)
@@ -129,6 +127,14 @@
   (append (huffman-leaves(right-branch tree))
           (huffman-leaves(left-branch tree)))))
 
-(huffman-leaves sample-tree)
-
 ;; i)
+
+(define (sum-weights leaves)
+    (if (null? leaves)
+        0
+        (+ (sum-weights (cdr leaves))(car(cdr(car leaves))))))
+
+(define (num-bits symbol tree)
+  (length (encode (list symbol) tree)))
+
+
