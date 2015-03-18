@@ -58,6 +58,9 @@
 
 ;; b)
 
+;;Ser ut til at den interne prosedyren bare er til for å opprette 
+;;en lokal variabel til den grenen man traverserer, slik at man ikke ødelegger hele treet.
+
 ;; c) Iterativ losning av decode. 
 ;; Tar vare paa hver lovnodes liste ved aa slaa den sammen med accumulator istedenfor at
 ;; cons venter paa returverdien til de rekursive kallene.
@@ -75,8 +78,8 @@
 
 
 ;; d)
-(decode sample-code sample-tree)
-(decode-tail sample-code sample-tree)
+;;(decode sample-code sample-tree)
+;;(decode-tail sample-code sample-tree)
 ;; Begge returnerer 'ninjas fight ninjas by night'.
 
 ;; e)
@@ -88,6 +91,44 @@
               ((member? (car message)(symbols (left-branch branch))) 
                (encode-1 message (left-branch branch)(cons 0 code)))
               (else (encode-1 message (right-branch branch)(cons 1 code))))))
-  (encode-1 message tree '()))
-           
-            
+  (encode-1 message tree '()))            
+
+;; f)
+
+;; Har vi gjort f riktig?
+
+(define (grow-huffman-tree freqs)
+    (if (= (length freqs) 1)
+        (car freqs)
+        (grow-huffman-tree (adjoin-set (make-code-tree (car freqs)(cadr freqs)) 
+                                       (cddr freqs)))))
+  
+
+(define freqs '((a 2) (b 5) (c 1) (d 3) (e 1) (f 3)))
+(define codebook (grow-huffman-tree (make-leaf-set freqs)))
+;;(decode (encode '(a b c) codebook) codebook)
+;;(decode (encode '(d e f) codebook) codebook)
+
+;; g)
+
+(define gecks '((ninjas 57) (samurais 20) (fight 45) (night 12) (hide 3) (in 2) (ambush 2) (defeat 1) (the 5) (sword 4) (by 12) (assassin 1) (river 2) (forest 1) (wait 1) (poison 1)))
+(define codebook (grow-huffman-tree (make-leaf-set gecks)))
+
+(encode '(ninjas fight) codebook)
+(encode '(ninjas fight ninjas) codebook)
+(encode '(ninjas fight samurais) codebook)
+(encode '(samurais fight) codebook)
+(encode '(samurais fight ninjas) codebook)
+(encode '(ninjas fight by night) codebook)
+
+;; h)
+
+(define (huffman-leaves tree)
+    (if(leaf? tree)
+       (list(list (symbol-leaf tree)(weight-leaf tree)))
+  (append (huffman-leaves(right-branch tree))
+          (huffman-leaves(left-branch tree)))))
+
+(huffman-leaves sample-tree)
+
+;; i)
