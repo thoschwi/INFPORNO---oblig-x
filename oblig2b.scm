@@ -36,4 +36,14 @@
 (define s1 (make-stack (list 'foo 'bar)))
 (define s2 (make-stack '()))
 
+;; b) 
 
+;; 3 Strukturdeling og sirkulære lister
+;; a)
+
+;; Se vedlagt "3a-boks-peker.png".
+;; Returverdiene til list-ref kommer av at listen er sirkulaer. (list-ref bar 5) 
+;; og oppover ville ikke vaert gyldige indekser i den opprinnelige, asykliske 
+;; listen, men her starter den "paa nytt". Elementet "e" finnes ikke lenger fordi
+;; set-cdr! destruktivt satte (b c d)(som naa ikke er terminert, derav det 
+;; sirkulaere resultatet) der istedet.
