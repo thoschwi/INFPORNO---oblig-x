@@ -27,7 +27,7 @@
     (lambda (message . items) ;; Items er en argumentliste av variabel lengde.
       (case message
         ('pop! (if (null? stack)
-                   '() ;; Aner ikke hvordan man bare gjor "ingenting"...
+                   (values) ;; Aner ikke hvordan man bare gjor "ingenting"...
                    (set! stack (cdr stack))))
         ('push! (set! stack (append (reverse items) stack)))
         ('stack stack)
@@ -39,17 +39,19 @@
 
 ;; b)
 
-(define (push!)
-  (lambda (stack . items)
-    (set! stack (append (reverse items) stack))))
+(define (pop! stack)
+  (stack 'pop! stack))
 
-(push! s1 'foo 'faa)
+(define (push! stack . items)
+  (stack 'push! items))
 
-(define (pop!)
-  (lambda (items)
-    ('pop! (if (null? items)
-           '()
-           (set! items (cdr items))))))
+(define (stack stack)
+  (stack 'stack))
+
+(pop! s1)
+;;(stack s1)
+(push! s1 'dune 'atreides);; En cons for mye?
+;;(stack s1)
 
 ;; 3 Strukturdeling og sirkulære lister
 ;; a)
@@ -123,22 +125,24 @@
         #f))  
 
   (define (build-triples items triple)
-    (cond ((o? (right top)) (build-triples (cdr items)
+    (cond ((o? (right top)) ;;(begin set! triple...
+           (build-triples (cdr items)
                                 (make-triple (cadr items) top 'o)))
           ;; Her sluttes ringen...
           ((null? items) (begin
                            (set! triple (left top)) 
                            (set! top (right triple))
                            top))
-          (else (build-triples (cdr items)
+          (else ;;(begin set! triple...
+           (build-triples (cdr items)
                                (make-triple (car items) triple 'o)))))
   
   (let ((first (build-triples items top)))  
     (lambda ()
       first)))
 
-(define (top ring)
-  ())
+;;(define (top ring)
+;;  ())
 
 (define r1 (make-ring '(1 2 3 4)))
 
