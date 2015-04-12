@@ -43,14 +43,21 @@
   (stack 'pop! stack))
 
 (define (push! stack . items)
-  (stack 'push! items))
+  (define (iter items)
+    (if (null? items)
+        "Push done!"
+        (begin 
+          (stack 'push! (car items))
+               (iter (cdr items)))))
+  (iter items))
 
 (define (stack stack)
   (stack 'stack))
 
 (pop! s1)
 ;;(stack s1)
-(push! s1 'dune 'atreides);; En cons for mye?
+
+(push! s1 'dune 'atreides 'harkoonen);; En cons for mye?
 ;;(stack s1)
 
 ;; 3 Strukturdeling og sirkulære lister
@@ -104,6 +111,7 @@
 ;; triple (top) sin venstre peker paa triplet som inneholder det siste elementet
 ;; i listen som man startet med. Tilsvarende peker det siste triplet sin hoyre
 ;; til top sin venstre.
+;; Se gjerne vedlagt "3c-illus" for illustrasjon av strukturen.
 
 ;;Abstraksjonsbarriere 
 ;;Konstruktor
