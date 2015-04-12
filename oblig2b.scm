@@ -162,14 +162,19 @@
            (build-triples (cdr items)(right triple)))))
 
   (let ((first (build-triples (cdr items) top)))
-    (lambda (message . value)
+    (lambda (message . arg)
       (case message
         ('top (value first))
         ('del (begin
-                (set-left! first (right first))
+                (set-right! (left first) (right first))
+                (set-left! (right first) (left first))
                 (set! first (left first))
                 (value first)))
-        ('ins "WIP")
+        ('ins (begin ;; Denne er litt stygg--hold tunga rett i munnen...
+                (set-right! (left first) 
+                            (make-triple (car arg) (left first) first))
+                (set-left! first (right (left first)))
+                (set! first (right (left first)))))
         ('r (begin
               (set! first (left first))
             (value first)))
@@ -182,3 +187,6 @@
 (define r2 (make-ring '(a b c d)))
 
 ;; f)
+
+;; right-rotate og left-rotate, samt delete og insert, tar konstant tid (O(1)).
+;; Det er bare snakk om aa oppdatere 1 eller 3 pekere. 
