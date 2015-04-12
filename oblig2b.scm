@@ -117,6 +117,7 @@
 ;; Se gjerne vedlagt "3c-illus.png" for illustrasjon av strukturen.
 
 ;;***ABSTRAKSJONSBARRIERE***
+;; Noen av disse burde kanskje staa innenfor make-ring. 
 ;;Konstruktor for triple:
 (define (make-triple value left right)
   (list value left right))
@@ -130,10 +131,10 @@
 ;;Mutatorer:
 (define (top ring)
   (ring 'top))
-(define (delete ring)
+(define (delete! ring)
   (ring 'del))
-(define (insert ring)
-  (ring 'ins))
+(define (insert! ring value)
+  (ring 'ins value))
 (define (right-rotate ring)
   (ring 'r))
 (define (left-rotate ring)
@@ -159,14 +160,15 @@
            ;; Merk at den nye triplen faar triple (forrige) som sin L.
            (set-right! triple (make-triple (car items) triple '()))
            (build-triples (cdr items)(right triple)))))
-   
-  ;;... meeen mcar klager allerede her paa at vi sender en tom liste...
-  ;; BWAAAAARGH!
+
   (let ((first (build-triples (cdr items) top)))
-    (lambda (message)
+    (lambda (message . value)
       (case message
         ('top (value first))
-        ('del "WIP")
+        ('del (begin
+                (set-left! first (right first))
+                (set! first (left first))
+                (value first)))
         ('ins "WIP")
         ('r (begin
               (set! first (left first))
