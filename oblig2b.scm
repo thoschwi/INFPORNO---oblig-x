@@ -126,7 +126,7 @@
 (define (left triple)
   (cadr triple))
 (define (right triple)
-  (cddr triple))
+  (caddr triple))
 ;;Mutatorer:
 (define (top ring)
   (ring 'top))
@@ -141,23 +141,27 @@
 (define (set-left! triple value)
   (set-car! (cdr triple) value))
 (define (set-right! triple value)
-  (set-cdr! (cdr triple) value))
+  (set-car! (cddr triple) value))
 
 (define (make-ring items)
-  ;; Top er forste triple. L/R starter tomme fordi vi ikke har mer.
-  ;; Invariant: H starter alltid tom.
-  ;; Merk at L settes i 2. parameter til make-triple.
-  (define top (make-triple (car items)'o '()))
+  ;; Top er forste triple og starter med (car items) som verdi.
+  ;; L/R starter tomme fordi vi ikke har mer.
+  (define top (make-triple (car items) 'o 'o))
+  ;; Invariant: R starter alltid tom.
   (define (build-triples items triple)
     (if (null? items) ;; Base-case
          (begin  ;; Her sluttes ringen...
            (set-left! top triple)
            (set-right! triple top)
            top))
-        ((begin ;;Setter R av triple til en NY triple og sender DEN videre:
+        ((begin 
+           ;; Setter R av triple til en NY triple og sender DEN videre.
+           ;; Merk at den nye triplen faar triple (forrige) som sin L.
            (set-right! triple (make-triple (car items) triple '()))
-           (build-triples (cdr items) (right triple)))))
+           (build-triples (cdr items)(right triple)))))
    
+  ;;... meeen mcar klager allerede her paa at vi sender en tom liste...
+  ;; BWAAAAARGH!
   (let ((first (build-triples (cdr items) top)))
     (lambda (message)
       (case message
