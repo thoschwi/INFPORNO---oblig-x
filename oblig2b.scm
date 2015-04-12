@@ -57,10 +57,10 @@
   (stack 'stack))
 
 (pop! s1)
-;;(stack s1)
+(stack s1)
 
-(push! s1 'dune 'atreides 'harkoonen);; En cons for mye?
-;;(stack s1)
+(push! s1 'dune 'atreides 'harkonnen)
+(stack s1)
 
 ;; 3 Strukturdeling og sirkulære lister
 ;; a)
@@ -94,9 +94,6 @@
           ((eq? tortoise hare) #t)
           (else (race (cdr tortoise) (cddr hare)))))
   (race items (cdr items)))
-
-;;(cycle? '(hey ho))
-;;(cycle? bar)
 
 ;; d)
 
