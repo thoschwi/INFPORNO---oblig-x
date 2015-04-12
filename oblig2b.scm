@@ -114,7 +114,7 @@
 ;; Forste triple (top) sin venstre peker paa triplet som inneholder det siste
 ;; elementet i listen som man startet med. Tilsvarende peker det siste triplet
 ;; sin hoyre til top sin venstre.
-;; Se gjerne vedlagt "3c-illus" for illustrasjon av strukturen.
+;; Se gjerne vedlagt "3c-illus.png" for illustrasjon av strukturen.
 
 ;;***ABSTRAKSJONSBARRIERE***
 ;;Konstruktor for triple:
@@ -124,7 +124,7 @@
 (define (value triple)
   (car triple))  
 (define (left triple)
-  (cdr triple))
+  (cadr triple))
 (define (right triple)
   (cddr triple))
 ;;Mutatorer:
@@ -139,19 +139,22 @@
 (define (left-rotate ring)
   (ring 'l))
 (define (set-left! triple value)
-  (set-cdr! triple value))
+  (set-car! (cdr triple) value))
 (define (set-right! triple value)
   (set-cdr! (cdr triple) value))
 
 (define (make-ring items)
-  (define top (make-triple (car items)'o '()));; 'o er plassholder.
+  ;; Top er forste triple. L/R starter tomme fordi vi ikke har mer.
+  ;; Invariant: H starter alltid tom.
+  ;; Merk at L settes i 2. parameter til make-triple.
+  (define top (make-triple (car items)'o '()))
   (define (build-triples items triple)
-    (if (null? items) 
+    (if (null? items) ;; Base-case
          (begin  ;; Her sluttes ringen...
            (set-left! top triple)
            (set-right! triple top)
            top))
-        ((begin ;;Setter right av triple til en NY triple og sender DEN videre:
+        ((begin ;;Setter R av triple til en NY triple og sender DEN videre:
            (set-right! triple (make-triple (car items) triple '()))
            (build-triples (cdr items) (right triple)))))
    
