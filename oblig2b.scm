@@ -189,4 +189,7 @@
 ;; f)
 
 ;; Ett kall paa right-rotate eller left-rotate (samt delete og insert) tar 
-;; konstant tid og rom (O(1)). Det er bare snakk om aa oppdatere en peker. 
+;; konstant tid og rom (O(1)). Det er bare snakk om aa oppdatere en peker
+;; (O(1) gjelder ogsaa insert og delete; de oppdaterer 3 pekere + ett kall 
+;; paa make-triple).
+;; (•_•) / ( •_•)>⌐■-■ / (⌐■_■) DEAL WITH IT.
