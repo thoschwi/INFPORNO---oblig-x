@@ -15,7 +15,9 @@
 (define c1 (make-counter))
 (define c2 (make-counter))
 
-;; b) Se vedlagt "1b-omgivelse.png"
+;; b) 
+
+;;Se vedlagt "1b-omgivelse.png"
 
 
 ;; 2 Innkapsling, lokal tilstand og message passing.
@@ -100,58 +102,74 @@
 
 ;; Lister har pr definisjon en endelig lengde og er terminert av den
 ;; tomme listen (null). Sykliske "lister" er aapenbart ikke terminert.
-;; list? detekterer tydeligvis sykluser i tillegg til enkeltsymboler.
+;; list? skiller tydeligvis mellom lister, sykluser og enkeltsymboler.
+
 
 ;; e)
 
 ;; Vi definerer en ring for aa vaere en lenket liste av tripler som alle har
 ;; pekere til baade det forrige og neste elementet i listen.
-;; En triple er en liste med 3 elementer som har en verdi som forste element, og 
-;; pekere til venstre og hoyre triple som henholdsvis 2 og 3 element. Forste
-;; triple (top) sin venstre peker paa triplet som inneholder det siste elementet
-;; i listen som man startet med. Tilsvarende peker det siste triplet sin hoyre
-;; til top sin venstre.
+;; En triple er en liste med 3 elementer som har en verdi som forste element, 
+;; og pekere til venstre og hoyre triple som henholdsvis 2 og 3 element. 
+;; Forste triple (top) sin venstre peker paa triplet som inneholder det siste
+;; elementet i listen som man startet med. Tilsvarende peker det siste triplet
+;; sin hoyre til top sin venstre.
 ;; Se gjerne vedlagt "3c-illus" for illustrasjon av strukturen.
 
-;;Abstraksjonsbarriere 
-;;Konstruktor
+;;***ABSTRAKSJONSBARRIERE***
+;;Konstruktor for triple:
 (define (make-triple value left right)
   (list value left right))
-;;Selektorer
+;;Selektorer:
 (define (value triple)
   (car triple))  
 (define (left triple)
   (cdr triple))
 (define (right triple)
   (cddr triple))
+;;Mutatorer:
+(define (top ring)
+  (ring 'top))
+(define (delete ring)
+  (ring 'del))
+(define (insert ring)
+  (ring 'ins))
+(define (right-rotate ring)
+  (ring 'r))
+(define (left-rotate ring)
+  (ring 'l))
+(define (set-left! triple value)
+  (set-cdr! triple value))
+(define (set-right! triple value)
+  (set-cdr! (cdr triple) value))
 
 (define (make-ring items)
-  (define top (make-triple (car items)'o 'o));;o er plassholder
-  (define (o? symbol)
-    (if (equal? symbol 'o)
-        #t
-        #f))  
-
+  (define top (make-triple (car items)'o '()));; 'o er plassholder.
   (define (build-triples items triple)
-    (cond ((o? (right top)) ;;(begin set! triple...
-           (build-triples (cdr items)
-                                (make-triple (cadr items) top 'o)))
-          ;; Her sluttes ringen...
-          ((null? items) (begin
-                           (set! triple (left top)) 
-                           (set! top (right triple))
-                           top))
-          (else ;;(begin set! triple...
-           (build-triples (cdr items)
-                               (make-triple (car items) triple 'o)))))
-  
-  (let ((first (build-triples items top)))  
-    (lambda ()
-      first)))
-
-;;(define (top ring)
-;;  ())
+    (if (null? items) 
+         (begin  ;; Her sluttes ringen...
+           (set-left! top triple)
+           (set-right! triple top)
+           top))
+        ((begin ;;Setter right av triple til en NY triple og sender DEN videre:
+           (set-right! triple (make-triple (car items) triple '()))
+           (build-triples (cdr items) (right triple)))))
+   
+  (let ((first (build-triples (cdr items) top)))
+    (lambda (message)
+      (case message
+        ('top (value first))
+        ('del "WIP")
+        ('ins "WIP")
+        ('r (begin
+              (set! first (left first))
+            first))
+        ('l (begin
+              (set! first (right first))
+              first))
+      (else "Invalid message!")))))
 
 (define r1 (make-ring '(1 2 3 4)))
+(define r2 (make-ring '(a b c d)))
 
 ;; f)
