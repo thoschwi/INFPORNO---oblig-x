@@ -188,5 +188,5 @@
 
 ;; f)
 
-;; right-rotate og left-rotate, samt delete og insert, tar konstant tid (O(1)).
-;; Det er bare snakk om aa oppdatere 1 eller 3 pekere. 
+;; Ett kall paa right-rotate eller left-rotate (samt delete og insert) tar 
+;; konstant tid og rom (O(1)). Det er bare snakk om aa oppdatere en peker. 
