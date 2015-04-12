@@ -147,14 +147,14 @@
   ;; Top er forste triple og starter med (car items) som verdi.
   ;; L/R starter tomme fordi vi ikke har mer.
   (define top (make-triple (car items) 'o 'o))
-  ;; Invariant: R starter alltid tom.
+  ;; Invariant: R av triple starter alltid tom.
   (define (build-triples items triple)
     (if (null? items) ;; Base-case
          (begin  ;; Her sluttes ringen...
            (set-left! top triple)
            (set-right! triple top)
-           top))
-        ((begin 
+           top)
+        (begin 
            ;; Setter R av triple til en NY triple og sender DEN videre.
            ;; Merk at den nye triplen faar triple (forrige) som sin L.
            (set-right! triple (make-triple (car items) triple '()))
@@ -170,10 +170,10 @@
         ('ins "WIP")
         ('r (begin
               (set! first (left first))
-            first))
+            (value first)))
         ('l (begin
               (set! first (right first))
-              first))
+              (value first)))
       (else "Invalid message!")))))
 
 (define r1 (make-ring '(1 2 3 4)))
