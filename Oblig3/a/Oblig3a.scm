@@ -4,38 +4,36 @@
 ;;1. PROSEDYRER FOR BEDRE PROSEDYRER
 
 ;;a - b)
-;;(define (mem message proc);; Den gamle.
-  
-;;  (define (memoize f)
-  ;;  (let ((table (make-table)))
-    ;;  (lambda x
-      ;;  (let ((previously-computed-result
-        ;;       (lookup x table)))
-          ;;(or previously-computed-result
-            ;;  (let ((result (apply f x)))
-              ;;  (insert! x result table)
-                ;;result))))))
-  
-  ;;(let ((original-proc proc))
-    ;;  (case message
-      ;;  ('memoize (memoize proc))
-        ;;('unmemoize original-proc))))) ;; Unmemoize funker ikke.
+
 
 (define (mem message proc)
   
   (define (memoize f)
-    (let ((table (make-table))
-          (original-proc proc))
-          (lambda x
-            (case message 
-              ('memoize 
-               (let ((previously-computed-result
-                      (lookup x table)))
-                 (or previously-computed-result
-                     (let ((result (apply f x)))
-                       (insert! x result table)
-                       result))))
-               ('umemoize
-                original-proc)))))
-            
-            (memoize proc))
+    (let ((table (make-table)))
+      (case message
+        ('memoize
+         (lambda x 
+           (let ((previously-computed-result
+                  (lookup x table)))
+             (or previously-computed-result
+                 (let ((result (apply f x)))
+                   (insert! x result table)
+                   result)))))
+        ('unmemoize
+         (lambda x
+           (apply proc x))))));; Her maa "proc" erstattes med original-proc
+  
+  (memoize proc))
+
+;;c)
+
+(define mem-fib (mem 'memoize fib))
+(mem-fib 3)
+(mem-fib 3)
+(mem-fib 2)
+;; Her bindes returverdien av mem til en NYTT prosedyrenavn "mem-fib". I eksemplene
+;; i oppgave b), derimot, endres definisjonen av fib ved aa destruktivt
+;; binde lambda-uttrykket fra memoize til prosedyrenavnet fib. Det som gaar
+;; galt i koden over er at fib kaller seg selv (i memo-fib) med den ikke-memoiserte
+;; definisjonen av fib, slik at ikke alle verdiene blir memoisert. Definisjonen
+;; av memo-fib er naturligvis ikke synlig for fib--fib kjenner bare seg selv. 
