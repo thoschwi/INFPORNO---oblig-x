@@ -5,22 +5,25 @@
 
 ;;a - b)
 (define (mem message proc)
-      
-    (define (memoize f)
-      (let ((table (make-table)))
-        ;; Memoizer-koden fra SICP oppgave 3.27. Fungerer ikke med 
-        ;; prosedyrer som tar inn vilkaarlig antall argumenter.
-        (lambda x
-          (let ((previously-computed-result
-                 (lookup x table)))
-            (or previously-computed-result
-                (let ((result (apply f x)))
-                  (insert! x result table)
-                  result))))))
   
-     (let ((original-proc proc))
-       (case message
-         ('memoize (memoize proc))
-         ('unmemoize original-proc)))) ;; Unmemoize funker ikke.
-    
-    
+  (define (memoize f)
+    (let ((table (make-table)))
+      ;; Memoizer-koden fra SICP oppgave 3.27. Fungerer ikke med 
+      ;; prosedyrer som tar inn vilkaarlig antall argumenter.
+      (lambda x
+        (let ((previously-computed-result
+               (lookup x table)))
+          (or previously-computed-result
+              (let ((result (apply f x)))
+                (insert! x result table)
+                result))))))
+  
+  (define (store-proc proc)
+    (lambda args 
+      (apply proc args)))
+  
+  (let ((original-proc (store-proc proc)))
+    (case message
+      ('memoize (memoize proc))
+      ('unmemoize original-proc)))) ;; Unmemoize funker ikke.
+
