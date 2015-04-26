@@ -10,11 +10,11 @@
       (let ((table (make-table)))
         ;; Memoizer-koden fra SICP oppgave 3.27. Fungerer ikke med 
         ;; prosedyrer som tar inn vilkaarlig antall argumenter.
-        (lambda (x) 
+        (lambda x
           (let ((previously-computed-result
                  (lookup x table)))
             (or previously-computed-result
-                (let ((result (f x)))
+                (let ((result (apply f x)))
                   (insert! x result table)
                   result))))))
   
