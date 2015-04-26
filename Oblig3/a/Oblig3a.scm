@@ -3,7 +3,7 @@
 
 ;;1. PROSEDYRER FOR BEDRE PROSEDYRER
 
-;;a)
+;;a - b)
 (define (mem message proc)
       
     (define (memoize f)
