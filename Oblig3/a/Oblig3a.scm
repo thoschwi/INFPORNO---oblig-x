@@ -8,22 +8,14 @@
 
 (define (mem message proc)
   
-  (define (memoize f)
     (let ((table (make-table)))
-      (case message
-        ('memoize
-         (lambda x 
-           (let ((previously-computed-result
-                  (lookup x table)))
-             (or previously-computed-result
-                 (let ((result (apply f x)))
-                   (insert! x result table)
-                   result)))))
-        ('unmemoize
-         (lambda x
-           (apply proc x))))));; Her maa "proc" erstattes med original-proc
-  
-  (memoize proc))
+      (lambda x 
+        (let ((previously-computed-result
+               (lookup x table)))
+          (or previously-computed-result
+              (let ((result (apply proc x)))
+                (insert! x result table)
+                result))))))
 
 ;;c)
 
@@ -31,9 +23,14 @@
 (mem-fib 3)
 (mem-fib 3)
 (mem-fib 2)
-;; Her bindes returverdien av mem til en NYTT prosedyrenavn "mem-fib". I eksemplene
-;; i oppgave b), derimot, endres definisjonen av fib ved aa destruktivt
-;; binde lambda-uttrykket fra memoize til prosedyrenavnet fib. Det som gaar
-;; galt i koden over er at fib kaller seg selv (i memo-fib) med den ikke-memoiserte
-;; definisjonen av fib, slik at ikke alle verdiene blir memoisert. Definisjonen
-;; av memo-fib er naturligvis ikke synlig for fib--fib kjenner bare seg selv. 
+;; I eksemplene i oppgave b), endres den globale definisjonen av fib
+;; ved aa destruktivt binde lambda-uttrykket fra memoize til prosedyrenavnet
+;; fib. fib blir altsaa redefinert og den opprinnelige definisjonen eksisterer
+;; ikke lenger.
+;; I koden over, derimot, bindes returverdien av mem til en NYTT prosedyrenavn
+;; "mem-fib". Det er naa viktig aa merke seg at den nye prosedyren mem-fib 
+;; kaller fib, som er uendret, og at fib er rekursiv.
+;; Det som gaar galt i koden over er at fib kaller seg selv (i mem-fib) 
+;; med den opprinnelige, ikke-memoiserte definisjonen av seg selv. Kun
+;; returverdiene til kjeden av fib-kallene er synlig for memo-fib, saa bare
+;; disse blir memoisert.
