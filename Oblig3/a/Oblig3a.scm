@@ -6,19 +6,28 @@
 ;;a - b)
 
 
-(define (mem message proc)
-    
-  (case message
-    ('memoize
-     (let ((table (make-table)))
-       (lambda x (if (null? x) proc
-         (let ((prev-result (lookup x table)))
-           (or prev-result
-               (let ((result (apply proc x)))
-                 (insert! x result table)
-                 result)))))))
-    ('unmemoize
-     (proc))))
+(define mem
+  
+  (let ((trigger (list 'trigger))
+        (check (list 'check)))
+    (lambda (message proc)
+      (case message
+        ('memoize
+         (let ((table (make-table)))
+           (lambda x 
+             (if (eq? trigger check)
+                 proc
+                 (let ((prev-result (lookup x table)))
+                   (or prev-result
+                       (let ((result (apply proc x)))
+                         (insert! x result table)
+                         result)))))))
+        ('unmemoize
+         (let ((c check))
+           (set! check trigger)
+           (let ((p (proc)))
+             (set! check c)
+             proc)))))))
 
 ;;c)
 
