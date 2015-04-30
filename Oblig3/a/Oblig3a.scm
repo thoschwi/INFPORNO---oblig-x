@@ -118,3 +118,44 @@
 (stream-to-list (stream-interval 10 20))
 (show-stream nats 15)
 (stream-to-list nats 10)
+
+;;b) 
+
+(define (stream-map proc . argstreams)
+  (if (stream-null? (car argstreams))
+      the-empty-stream
+      (cons-stream
+       (apply proc (map stream-car argstreams))
+       (apply stream-map
+              (cons proc (map stream-cdr argstreams))))))
+
+
+;;c)
+
+;; Vi implementerer forslaget til Petter Smart...
+(define (stream-memq item x)
+  (cond ((stream-null? x) #f)
+        ((eq? item (stream-car x)) x)
+        (else (stream-memq item (stream-cdr x)))))
+
+(define (stream-remove-duplicates lst)
+  (cond ((stream-null? lst) the-empty-stream)
+        ((not (stream-memq (stream-car lst)(stream-cdr lst)))
+         (cons-stream (stream-car lst) 
+                      (stream-remove-duplicates (stream-cdr lst))))
+        (else (stream-remove-duplicates (stream-cdr lst)))))
+;;...og tester det:
+(define test-stream (list-to-stream '(1 1 2 2 3 3 4 4)))
+(define no-duplicates (stream-remove-duplicates test-stream))
+(show-stream no-duplicates) ;; Dette ser ut til aa funke bra...
+;; Men hva hvis...
+;;(define nats-no-duplicates (stream-remove-duplicates nats)) = REKURSJONSBRONN!
+
+;; Som testene har vist, ser den modifiserte remove-duplicates ut til aa fungere
+;; som den skal med en sluttet strom. Men dette er akkurat problemet: den 
+;; vanlige remove-duplicates er ment for lister, som pr definisjon ikke kan
+;; vaere uendelige. Det tas altsaa ikke hoyde for uendelige strommer; dette er
+;; ingen god losning...
+
+
+
