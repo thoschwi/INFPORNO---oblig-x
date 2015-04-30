@@ -104,8 +104,17 @@
         (cons-stream (car l)
                      (list-to-stream (cdr l)))))
 
-(define (stream-to-list s)
-  (if (stream-null? s)
-      '()
-      (cons (stream-car s)
-            (stream-to-list (stream-cdr s)))))
+(define (stream-to-list s . n)
+  (define (rec s i)
+    (cond ((stream-null? s) '())
+          ((= i 0) '())
+          (else 
+           (cons (stream-car s)
+                 (rec (stream-cdr s)(- i 1))))))
+  
+  (rec s (if (null? n) 20 (car n))))
+
+;;Test:
+(stream-to-list (stream-interval 10 20))
+(show-stream nats 15)
+(stream-to-list nats 10)
