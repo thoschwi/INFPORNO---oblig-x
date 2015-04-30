@@ -114,7 +114,7 @@
   
   (rec s (if (null? n) 20 (car n))))
 
-;;Test:
+(display "Testing stream-to-list...\n")
 (stream-to-list (stream-interval 10 20))
 (show-stream nats 15)
 (stream-to-list nats 10)
@@ -145,17 +145,18 @@
                       (stream-remove-duplicates (stream-cdr lst))))
         (else (stream-remove-duplicates (stream-cdr lst)))))
 ;;...og tester det:
+(display "\nTests for 2c...\n")
 (define test-stream (list-to-stream '(1 1 2 2 3 3 4 4)))
 (define no-duplicates (stream-remove-duplicates test-stream))
-(show-stream no-duplicates) ;; Dette ser ut til aa funke bra...
-;; Men hva hvis...
-;;(define nats-no-duplicates (stream-remove-duplicates nats)) = REKURSJONSBRONN!
-
-;; Som testene har vist, ser den modifiserte remove-duplicates ut til aa fungere
-;; som den skal med en sluttet strom. Men dette er akkurat problemet: den 
-;; vanlige remove-duplicates er ment for lister, som pr definisjon ikke kan
-;; vaere uendelige. Det tas altsaa ikke hoyde for uendelige strommer; dette er
-;; ingen god losning...
+(show-stream no-duplicates) 
+no-duplicates
+;; Testen viser at prosedyrene rent funksjonelt gjor akkurat det den skal.
+;; Imidlertid gjor de det paa feil maate. Slik de er skrevet, evaluerer de
+;; samtlige av verdiene i strommen (slik man maa gjore med lister) naar de
+;; egentlig burde bare evaluere de elementene som er interessante, altsaa
+;; duplikatene. Kompleksiteten vil derfor tilsvare den originale 
+;; remove-duplicates naar den kunne vaert betraktelig redusert. Losningen
+;; fjerner med andre ord mot hele fordelen strommer har over lister.
 
 
 
