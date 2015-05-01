@@ -89,7 +89,7 @@
   (display title)
   (newline))
 
-(display "\nTesting greet...\n")
+(display "\n\t** 1d **\nTesting greet...\n")
 (greet)
 (greet 'time "evening")
 (greet 'time "evening" 'title "lord")
@@ -114,7 +114,7 @@
   
   (rec s (if (null? n) 20 (car n))))
 
-(display "\n\t** 1d) **\nTesting stream-to-list...\n")
+(display "\n\t** 2a) **\nTesting stream-to-list...\n")
 (stream-to-list (stream-interval 10 20))
 (show-stream nats 15)
 (stream-to-list nats 10)
@@ -210,5 +210,9 @@ x)
 (define multiplied (mul-streams test-stream test-stream));; (1 2 3 4)*(1 2 3 4)
 (show-stream multiplied)
 (define factorials (cons-stream 1 (mul-streams nats factorials)))
+(display "5!: ")
+(stream-ref factorials 5)
+(display "10!: ")
+(stream-ref factorials 10)
 
 
