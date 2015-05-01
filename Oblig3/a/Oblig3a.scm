@@ -89,7 +89,7 @@
   (display title)
   (newline))
 
-;;Test greet.
+(display "\nTesting greet...\n")
 (greet)
 (greet 'time "evening")
 (greet 'time "evening" 'title "lord")
@@ -114,7 +114,7 @@
   
   (rec s (if (null? n) 20 (car n))))
 
-(display "Testing stream-to-list...\n")
+(display "\nTesting stream-to-list...\n")
 (stream-to-list (stream-interval 10 20))
 (show-stream nats 15)
 (stream-to-list nats 10)
@@ -145,15 +145,16 @@
                       (stream-remove-duplicates (stream-cdr lst))))
         (else (stream-remove-duplicates (stream-cdr lst)))))
 ;;...og tester det:
-(display "\nTests for 2c...\n")
+(display "\nTest for 2c)...\n")
 (define test-stream (list-to-stream '(1 1 2 2 3 3 4 4)))
 (define no-duplicates (stream-remove-duplicates test-stream))
 (show-stream no-duplicates) 
 ;; Testen viser at losningen fungerer med en endelig strom, men hva 
 ;; skjer hvis... 
-;; (define nats-no-duplicates (stream-remove-duplicates nats)).
+;; (stream-remove-duplicates nats)
 ;; Kallet over er kommentert ut fordi det resulterer i rekursjonsbronn.
-;; og fungerer derfor ikke med en uendelig strom. Den prover aa sjekke hva som 
+;; Memq, slik den er skrevet over, benytter seg ikke av utsatt evaluering,
+;; og fungerer derfor ikke med en uendelig strom. Den prover aa sjekke alt som 
 ;; finnes videre i strommen opp i mot hva som allerede er blitt sett, noe som
 ;; er umulig fordi strommen aldri stopper. I losningen paa d) ser man hvordan
 ;; det skal gjores...
@@ -161,7 +162,7 @@
 ;;d)
 
 (define (in-stream? stream)
-  (lambda(x)
+  (lambda (x)
     (not (eq? x (stream-car stream))))) 
 
 (define (remove-duplicates stream)
@@ -192,6 +193,12 @@ x)
 (stream-ref x 5); 1 2 3 4 5 5
 
 (stream-ref x 7); 6 7 7
+
+;; Man ser at uttrykket i x ikke evalueres paa nytt for hver av verdiene som 
+;; allerede er blitt evaluert av det forste kallet paa stream-ref. Dette er
+;; fordi cons-stream (via delay) memoiserer resultater av tidligere evaluerte 
+;; uttrykk (her skjer dette i stream-map).
+
 
 
 
