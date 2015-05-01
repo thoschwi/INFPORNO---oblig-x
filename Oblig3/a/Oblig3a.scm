@@ -149,14 +149,50 @@
 (define test-stream (list-to-stream '(1 1 2 2 3 3 4 4)))
 (define no-duplicates (stream-remove-duplicates test-stream))
 (show-stream no-duplicates) 
-no-duplicates
-;; Testen viser at prosedyrene rent funksjonelt gjor akkurat det den skal.
-;; Imidlertid gjor de det paa feil maate. Slik de er skrevet, evaluerer de
-;; samtlige av verdiene i strommen (slik man maa gjore med lister) naar de
-;; egentlig burde bare evaluere de elementene som er interessante, altsaa
-;; duplikatene. Kompleksiteten vil derfor tilsvare den originale 
-;; remove-duplicates naar den kunne vaert betraktelig redusert. Losningen
-;; fjerner med andre ord mot hele fordelen strommer har over lister.
+;; Testen viser at losningen fungerer med en endelig strom, men hva 
+;; skjer hvis... 
+;; (define nats-no-duplicates (stream-remove-duplicates nats)).
+;; Kallet over er kommentert ut fordi det resulterer i rekursjonsbronn.
+;; og fungerer derfor ikke med en uendelig strom. Den prover aa sjekke hva som 
+;; finnes videre i strommen opp i mot hva som allerede er blitt sett, noe som
+;; er umulig fordi strommen aldri stopper. I losningen paa d) ser man hvordan
+;; det skal gjores...
+
+;;d)
+
+(define (in-stream? stream)
+  (lambda(x)
+    (not (eq? x (stream-car stream))))) 
+
+(define (remove-duplicates stream)
+  (if (stream-null? stream)
+      stream-null
+      (cons-stream (stream-car stream) 
+                   (remove-duplicates 
+                    (stream-filter (in-stream? stream)
+                                   (stream-cdr stream))))))
+
+(display "\nTesting 2d)...\n")
+(define nats-no-duplicates (remove-duplicates nats))
+(show-stream nats-no-duplicates 5)
+(show-stream nats-no-duplicates)
+
+;;e)
+
+(define (show x)
+(display x)
+(newline)
+x)
+
+(display "\n** 2e **\n")
+(define x
+  (stream-map show
+              (stream-interval 0 10)))
+
+(stream-ref x 5); 1 2 3 4 5 5
+
+(stream-ref x 7); 6 7 7
+
 
 
 
