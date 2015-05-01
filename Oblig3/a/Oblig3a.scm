@@ -145,7 +145,7 @@
                       (stream-remove-duplicates (stream-cdr lst))))
         (else (stream-remove-duplicates (stream-cdr lst)))))
 ;;...og tester det:
-(display "\nTest for 2c)...\n")
+(display "\n** 2c) **\nTesting stream-remove-duplicates...\n")
 (define test-stream (list-to-stream '(1 1 2 2 3 3 4 4)))
 (define no-duplicates (stream-remove-duplicates test-stream))
 (show-stream no-duplicates) 
@@ -153,7 +153,7 @@
 ;; skjer hvis... 
 ;; (stream-remove-duplicates nats)
 ;; Kallet over er kommentert ut fordi det resulterer i rekursjonsbronn.
-;; Memq, slik den er skrevet over, benytter seg ikke av utsatt evaluering,
+;; Losningen over benytter seg nemlig ikke av utsatt evaluering,
 ;; og fungerer derfor ikke med en uendelig strom. Den prover aa sjekke alt som 
 ;; finnes videre i strommen opp i mot hva som allerede er blitt sett, noe som
 ;; er umulig fordi strommen aldri stopper. I losningen paa d) ser man hvordan
@@ -167,16 +167,18 @@
 
 (define (remove-duplicates stream)
   (if (stream-null? stream)
-      stream-null
+      the-empty-stream
       (cons-stream (stream-car stream) 
                    (remove-duplicates 
                     (stream-filter (in-stream? stream)
                                    (stream-cdr stream))))))
 
-(display "\nTesting 2d)...\n")
+(display "\n\t2d)\nTesting...\n")
 (define nats-no-duplicates (remove-duplicates nats))
+(set! no-duplicates (remove-duplicates test-stream))
 (show-stream nats-no-duplicates 5)
 (show-stream nats-no-duplicates)
+(show-stream no-duplicates)
 
 ;;e)
 
@@ -185,7 +187,7 @@
 (newline)
 x)
 
-(display "\n** 2e **\n")
+(display "\n\t** 2e **\n")
 (define x
   (stream-map show
               (stream-interval 0 10)))
@@ -199,7 +201,13 @@ x)
 ;; fordi cons-stream (via delay) memoiserer resultater av tidligere evaluerte 
 ;; uttrykk (her skjer dette i stream-map).
 
+;;f)
 
+(define (mul-streams s1 s2)
+  (stream-map * s1 s2))
 
+(display "\n\t** 2d) **\nTesting mul-stream...\n")
+(define multiplied (mul-streams test-stream test-stream));; (1 2 3 4)*(1 2 3 4)
+(show-stream multiplied)
 
 
