@@ -114,7 +114,7 @@
   
   (rec s (if (null? n) 20 (car n))))
 
-(display "\nTesting stream-to-list...\n")
+(display "\n\t** 1d) **\nTesting stream-to-list...\n")
 (stream-to-list (stream-interval 10 20))
 (show-stream nats 15)
 (stream-to-list nats 10)
@@ -209,5 +209,7 @@ x)
 (display "\n\t** 2d) **\nTesting mul-stream...\n")
 (define multiplied (mul-streams test-stream test-stream));; (1 2 3 4)*(1 2 3 4)
 (show-stream multiplied)
+(define factorials (cons-stream (mul-streams (integers-starting-from 0) nats) 
+                                (mul-streams (integers-starting-from 0) nats)))
 
 
