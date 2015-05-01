@@ -209,7 +209,6 @@ x)
 (display "\n\t** 2d) **\nTesting mul-stream...\n")
 (define multiplied (mul-streams test-stream test-stream));; (1 2 3 4)*(1 2 3 4)
 (show-stream multiplied)
-(define factorials (cons-stream (mul-streams (integers-starting-from 0) nats) 
-                                (mul-streams (integers-starting-from 0) nats)))
+(define factorials (cons-stream 1 (mul-streams nats factorials)))
 
 
