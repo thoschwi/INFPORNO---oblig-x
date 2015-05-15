@@ -78,6 +78,9 @@
         ((lambda? exp) #t)
         ((begin? exp) #t)
         ((cond? exp) #t)
+        ;;3a)
+        ((and? exp) #t)
+        ((or? exp) #t)
         (else #f)))
 
 (define (list-of-values exps env)
@@ -215,6 +218,10 @@
 
 (define (cond->if exp)
   (expand-clauses (cond-clauses exp)))
+
+(define (and? exp)(tagged-list? exp 'and))
+
+(define (or? exp)(tagged-list? exp or?))
 
 (define (expand-clauses clauses)
   (if (null? clauses)
@@ -426,10 +433,4 @@
 ;;; (set! the-global-environment (setup-environment))
 ;;; (read-eval-print-loop)
 
-(define (install-primitive! name exp)
-  (let ((new-primitive (list name exp)))
-    (set! primitive-procedures 
-          (append primitive-procedures (list new-primitive))))
-  (extend-environment (primitive-procedure-names)
-                      (primitive-procedure-objects)
-                      the-global-environment))
+
