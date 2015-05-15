@@ -369,11 +369,7 @@
               (lambda (x) (display x) 'ok))
         (list 'newline 
               (lambda () (newline) 'ok))
-;;     Under her har vi lagt til flere primitiver.
-        (list '1+ 
-              (lambda (x) (+ x 1)))
-        (list '1- 
-              (lambda (x) (- x 1)))
+;;      her kan vi legge til flere primitiver.
         ))
 
 (define (primitive-procedure-names)
@@ -425,11 +421,3 @@
 ;;; den globale omgivelsen, kjør:
 ;;; (set! the-global-environment (setup-environment))
 ;;; (read-eval-print-loop)
-
-(define (install-primitive! name exp)
-  (let ((new-primitive (list name exp)))
-    (set! primitive-procedures 
-          (append primitive-procedures (list new-primitive))))
-  (extend-environment (primitive-procedure-names)
-                      (primitive-procedure-objects)
-                      the-global-environment))
