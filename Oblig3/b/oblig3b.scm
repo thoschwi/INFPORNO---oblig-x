@@ -66,7 +66,7 @@
 ;;b)
 
 (define (install-primitive! name exp)
-  (let ((new-primitive (list name exp)))
+  (let ((new-primitive (list (list name exp))))
     (set! primitive-procedures 
-          (append primitive-procedures (list new-primitive)))
+          (append primitive-procedures new-primitive))
     (define-variable! name (list 'primitive exp) the-global-environment)))
