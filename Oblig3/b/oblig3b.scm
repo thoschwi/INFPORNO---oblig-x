@@ -79,11 +79,13 @@
 ;;3. NYE SPECIAL FORMS OG ALTERNATIV SYNTAKS
 ;;a)
 
-;;Kopi
+;;-----Kopier av kode fra evaluator.scm, med våre endringer------
 (define (eval-special-form exp env)
   (cond ((quoted? exp) (text-of-quotation exp))
         ((assignment? exp) (eval-assignment exp env))
         ((definition? exp) (eval-definition exp env))
+        ;;3b) Alternativ if:
+        ((alt-if? exp)(eval-alt-if exp env))
         ((if? exp) (eval-if exp env))
         ((lambda? exp)
          (make-procedure (lambda-parameters exp)
@@ -96,7 +98,6 @@
         ((and? exp)(eval-and exp env))
         ((or? exp)(eval-or exp env))))
 
-;;Kopi
 (define (special-form? exp)
   (cond ((quoted? exp) #t)
         ((assignment? exp) #t)
@@ -108,7 +109,11 @@
         ;;3a) And og Or:
         ((and? exp) #t)
         ((or? exp) #t)
+        ;;3b) Alternativ if:
+        ((alt-if? exp) #t)
         (else #f)))
+
+;;------------------------------- Kopier slutt.
 
 (define (and? exp)(tagged-list? exp 'and))
 
@@ -136,6 +141,7 @@
 (define (or? exp)(tagged-list? exp 'or))
 
 (define (eval-or exp env)
+  ;;Selektorer:
   (define (first-or exps)
     (car exps))
   (define (or-rest exps)
@@ -151,3 +157,28 @@
               (eval-ops rest)))))
   (eval-ops (or-rest exp)))
 
+;;b)
+
+;;Test-exp 1: (if #t then 'bleh elsif #t then 'meh else 'feh)
+;;Test-exp 2: (if #f then 'bleh elsif #t then 'meh else 'feh)
+;;Test-exp 3: (if #f then 'bleh elsif #f then 'meh else 'feh)
+(define (alt-if? exp)(and (tagged-list? (cddr exp) 'then)
+                          (tagged-list? exp 'if)))
+
+ ;;Selektorer og base-case predikat:
+  (define (alt-if-conseq exps);;if-consequent funker ikke pga 'then; vi må hoppe over.
+    (car (cdr (cdr (cdr exps)))))
+  (define (next-pred exps);;Hopp til neste predikat (en eventuell elsif)
+    (cdr (cdr (cdr (cdr exps)))))
+  (define (else? exps);; else markerer slutten av uttrykket.
+    (eq? (car exps) 'else))
+
+(define (eval-alt-if exp env)
+  ;; Merk at det ikke tas høyde for at else utelates (dette fører til rekursjonsbrønn).
+  (define (eval-ops exps)
+    (if (else? exps)
+        (mc-eval (cadr exps) env)
+        (if (true? (mc-eval (if-predicate exps) env))
+            (mc-eval (alt-if-conseq exps) env)
+            (eval-ops (next-pred exps)))));; Predikatet var false; vi prøver videre.
+  (eval-ops exp))
