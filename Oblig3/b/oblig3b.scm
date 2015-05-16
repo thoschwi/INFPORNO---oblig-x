@@ -87,6 +87,8 @@
         ;;3b) Alternativ if:
         ((alt-if? exp)(eval-alt-if exp env))
         ((if? exp) (eval-if exp env))
+        ;;3c) let:
+        ((let? exp)(mc-eval (let->lambda exp) env))
         ((lambda? exp)
          (make-procedure (lambda-parameters exp)
                          (lambda-body exp)
@@ -103,6 +105,8 @@
         ((assignment? exp) #t)
         ((definition? exp) #t)
         ((if? exp) #t)
+        ;;3c) let:
+        ((let? exp) #t)
         ((lambda? exp) #t)
         ((begin? exp) #t)
         ((cond? exp) #t)
@@ -159,16 +163,18 @@
 
 ;;b)
 
+;;Test-exp 0: (if #f then 'bleh else 'feh)
 ;;Test-exp 1: (if #t then 'bleh elsif #t then 'meh else 'feh)
 ;;Test-exp 2: (if #f then 'bleh elsif #t then 'meh else 'feh)
 ;;Test-exp 3: (if #f then 'bleh elsif #f then 'meh else 'feh)
+;;Test-exp 4: (if #f then 'bleh elsif #f then 'meh elsif #f then 'eh else 'DEAL_WITH_IT.)
 (define (alt-if? exp)(and (tagged-list? (cddr exp) 'then)
                           (tagged-list? exp 'if)))
 
- ;;Selektorer og base-case predikat:
-  (define (alt-if-conseq exps);;if-consequent funker ikke pga 'then; vi må hoppe over.
+  ;;Selektorer og base-case predikat:
+  (define (alt-if-conseq exps);; if-consequent funker ikke pga then; vi må hoppe over.
     (car (cdr (cdr (cdr exps)))))
-  (define (next-pred exps);;Hopp til neste predikat (en eventuell elsif)
+  (define (next-pred exps);; Hopp til neste predikat.
     (cdr (cdr (cdr (cdr exps)))))
   (define (else? exps);; else markerer slutten av uttrykket.
     (eq? (car exps) 'else))
@@ -182,3 +188,16 @@
             (mc-eval (alt-if-conseq exps) env)
             (eval-ops (next-pred exps)))));; Predikatet var false; vi prøver videre.
   (eval-ops exp))
+
+;;c)
+
+(define (let? exp)(tagged-list? exp 'let))
+;;Test-exp 1: (let ((one (- 2 1))(two (+ 1 1)))(+ two one))
+;;Expected result: 3
+          
+(define (let->lambda exp)
+  (let ((bindings (cadr exp))
+        (body (cddr exp)))
+    (let ((parameters (map car bindings))
+          (expressions (map cadr bindings)))
+      (cons (make-lambda parameters body) expressions))))
