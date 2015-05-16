@@ -196,8 +196,9 @@
 ;;Expected result: 3
           
 (define (let->lambda exp)
-  (let ((bindings (cadr exp))
-        (body (cddr exp)))
-    (let ((parameters (map car bindings))
-          (expressions (map cadr bindings)))
-      (cons (make-lambda parameters body) expressions))))
+  (let ((bindings (cadr exp)) ;; Listen over par av bindinger, <var><exp>...
+        (body (cddr exp)));; Selve prosedyrekroppen. 
+    (let ((parameters (map car bindings));; Plukker ut parameterne (<var>) fra bindingsparene...
+          (expressions (map cadr bindings))) ;; ...og uttrykkene (<exp>)...
+      ;; ... og klistrer det hele sammen til et lambda-uttrykk med uttrykkene som argumenter.
+      (cons (make-lambda parameters body) expressions)))) 
