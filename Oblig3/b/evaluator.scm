@@ -381,7 +381,8 @@
               (lambda (x) (+ x 1)))
         (list '1- 
               (lambda (x) (- x 1)))
-        ))
+        (list '> >)
+        (list '< <)))
 
 (define (primitive-procedure-names)
   (map car

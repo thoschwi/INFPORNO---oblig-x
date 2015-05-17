@@ -6,6 +6,79 @@
 
 (set! the-global-environment (setup-environment))
 
+;;-----Kopier av kode fra evaluator.scm, med våre endringer-----
+(define primitive-procedures
+  (list (list 'car car)
+        (list 'cdr cdr)
+        (list 'cons cons)
+        (list 'null? null?)
+        (list 'not not)
+        (list '+ +)
+        (list '- -)
+        (list '* *)
+        (list '/ /)
+        (list '= =)
+        (list 'eq? eq?)
+        (list 'equal? equal?)
+        (list 'display 
+              (lambda (x) (display x) 'ok))
+        (list 'newline 
+              (lambda () (newline) 'ok))
+;;     Under her har vi lagt til flere primitiver.
+;;      2a) 
+        (list '1+ 
+              (lambda (x) (+ x 1)))
+        (list '1- 
+              (lambda (x) (- x 1)))
+        (list '> >)
+        (list '< <)))
+
+(define (eval-special-form exp env)
+  (cond ((quoted? exp) (text-of-quotation exp))
+        ;;3e) While:
+        ;;((while? exp)(eval-while exp env))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ;;3b) Alternativ if:
+        ((alt-if? exp)(eval-alt-if exp env))
+        ((if? exp) (eval-if exp env))
+        ;;3c) let:
+        ((let? exp)(mc-eval (let->lambda exp) env))
+        ;;3d) Alternativ let:
+        ((alt-let? exp)(mc-eval (alt-let exp) env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (mc-eval (cond->if exp) env))
+        ;;3a) And og Or:
+        ((and? exp)(eval-and exp env))
+        ((or? exp)(eval-or exp env))))
+
+(define (special-form? exp)
+  (cond ((quoted? exp) #t)
+        ;;3e) While:
+        ;;((while? exp) #t)
+        ((assignment? exp) #t)
+        ((definition? exp) #t)
+        ((if? exp) #t)
+        ;;3c) let:
+        ((let? exp) #t)
+        ;;3d) Alternativ let:
+        ((alt-let? exp) #t)
+        ((lambda? exp) #t)
+        ((begin? exp) #t)
+        ((cond? exp) #t)
+        ;;3a) And og Or:
+        ((and? exp) #t)
+        ((or? exp) #t)
+        ;;3b) Alternativ if:
+        ((alt-if? exp) #t)
+        (else #f)))
+;;------------------------------- Kopier slutt.
+
 ;;1. BLI KJENT MED EVALUATOREN
 ;; a)
 
@@ -39,36 +112,13 @@
 
 
 ;;2. PRIMITIVER/INNEBYGDE PROSEDYRER
-(define primitive-procedures
-  (list (list 'car car)
-        (list 'cdr cdr)
-        (list 'cons cons)
-        (list 'null? null?)
-        (list 'not not)
-        (list '+ +)
-        (list '- -)
-        (list '* *)
-        (list '/ /)
-        (list '= =)
-        (list 'eq? eq?)
-        (list 'equal? equal?)
-        (list 'display 
-              (lambda (x) (display x) 'ok))
-        (list 'newline 
-              (lambda () (newline) 'ok))
-;;     Under her har vi lagt til flere primitiver.
-;;      2a) 
-        (list '1+ 
-              (lambda (x) (+ x 1)))
-        (list '1- 
-              (lambda (x) (- x 1)))
-        ))
+;;a) 
+;;Se kopien av primitive-procedures.
 
 ;;b)
 
-;; Tolker oppgaven slik at install-primitive! skal kunne kjøres kun fra scheme-REPLet
+;; Tolker oppgaven slik at install-primitive! skal kunne kjøres kun av scheme
 ;; og IKKE meta-REPLet (oppgaveteksten er uklar her).
-
 (define (install-primitive! name exp)
   (let ((new-primitive (list (list name exp))))
     (set! primitive-procedures ;;Legger til exp i listen over primitiver for testformål.
@@ -77,49 +127,6 @@
 
 
 ;;3. NYE SPECIAL FORMS OG ALTERNATIV SYNTAKS
-
-;;-----Kopier av kode fra evaluator.scm, med våre endringer------
-(define (eval-special-form exp env)
-  (cond ((quoted? exp) (text-of-quotation exp))
-        ((assignment? exp) (eval-assignment exp env))
-        ((definition? exp) (eval-definition exp env))
-        ;;3b) Alternativ if:
-        ((alt-if? exp)(eval-alt-if exp env))
-        ((if? exp) (eval-if exp env))
-        ;;3c) let:
-        ((let? exp)(mc-eval (let->lambda exp) env))
-        ;;3d) Alternativ let:
-        ((alt-let? exp)(mc-eval (alt-let exp env)))
-        ((lambda? exp)
-         (make-procedure (lambda-parameters exp)
-                         (lambda-body exp)
-                         env))
-        ((begin? exp) 
-         (eval-sequence (begin-actions exp) env))
-        ((cond? exp) (mc-eval (cond->if exp) env))
-        ;;3a) And og Or:
-        ((and? exp)(eval-and exp env))
-        ((or? exp)(eval-or exp env))))
-
-(define (special-form? exp)
-  (cond ((quoted? exp) #t)
-        ((assignment? exp) #t)
-        ((definition? exp) #t)
-        ((if? exp) #t)
-        ;;3c) let:
-        ((let? exp) #t)
-        ((alt-let? exp) #t)
-        ((lambda? exp) #t)
-        ((begin? exp) #t)
-        ((cond? exp) #t)
-        ;;3a) And og Or:
-        ((and? exp) #t)
-        ((or? exp) #t)
-        ;;3b) Alternativ if:
-        ((alt-if? exp) #t)
-        (else #f)))
-;;------------------------------- Kopier slutt.
-
 ;;a)
 
 (define (and? exp)(tagged-list? exp 'and))
@@ -220,10 +227,11 @@
 
 (define (alt-let? exp)(tagged-list? exp 'let))
 ;;Merk at let? evalueres FØR alt-let? i eval-special-form.
+
 ;;Syntaks: (let <var1> = <exp1> and <var2> = <exp2> and ... <varn> = <expn> in <body>)
 ;;and er ikke obligatorisk, alle andre ledd er obligatoriske.
-;;Copy-paste returverdiene av (alt-let <test-exp>) inn i meta-replet for å verifisere.
 
+;;Copy-paste returverdiene av (alt-let <test-exp>) inn i meta-replet for å verifisere.
 (define al-test-exp0 '(let one = 1 and two = 2 and three = 3 in (+ one two three)))
 ;;Returverdi: 6, ekvivalent lambda: ((lambda (one two three) (+ one two three)) 1 2 3)
 
