@@ -36,7 +36,7 @@
 (define (eval-special-form exp env)
   (cond ((quoted? exp) (text-of-quotation exp))
         ;;3e) While:
-        ;;((while? exp)(eval-while exp env))
+        ((while? exp)(eval-while exp env))
         ((assignment? exp) (eval-assignment exp env))
         ((definition? exp) (eval-definition exp env))
         ;;3b) Alternativ if:
@@ -60,7 +60,7 @@
 (define (special-form? exp)
   (cond ((quoted? exp) #t)
         ;;3e) While:
-        ;;((while? exp) #t)
+        ((while? exp) #t)
         ((assignment? exp) #t)
         ((definition? exp) #t)
         ((if? exp) #t)
@@ -173,7 +173,8 @@
 
 ;;b)
 
-(define (alt-if? exp)(and (tagged-list? (cddr exp) 'then)
+(define (alt-if? exp)(and (not (null? (cdr exp))) 
+                          (tagged-list? (cddr exp) 'then)
                           (tagged-list? exp 'if)))
 ;;Syntaks: (if <predikat> then <utfall> elsif <predikat> then <utfall> ... else <utfall>)
 ;;elsif er ikke obligatorisk, alle andre ledd er obligatoriske.
@@ -277,3 +278,28 @@
         (body (get-body exp)))
     (cons (make-lambda parameters body) 
           expressions)))
+
+;;e)
+
+(define (while? exp)(tagged-list? exp 'while))
+;; Syntaks: (while <pred> <body>)
+
+(define (while-pred exp)
+  (cadr exp))
+(define (while-body exp)
+  (cddr exp))
+
+(define (eval-while exp env)
+  (if (mc-eval (while-pred exp) env)
+      (begin
+        (mc-eval (while-body exp) env)
+        (mc-eval exp env))))
+
+;;Kjøreeksempler til meta-REPLet:
+;;(define counter 10)
+;;(while (> counter 0)(lambda () (display "\nCounter:")(display counter)(set! counter (- counter 1))))
+
+;;Kjøreeksemplet illusterer hvordan while må brukes: man må ha en ekstern variabel som 
+;;må oppdateres for hver iterasjon i body (som selvsagt må være et prosedyrekall eller 
+;;et lambda-uttrykk). Med andre ord, while her fungerer slik som while fungerer i f.eks
+;;Java eller C. 
