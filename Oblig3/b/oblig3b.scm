@@ -77,7 +77,6 @@
 
 
 ;;3. NYE SPECIAL FORMS OG ALTERNATIV SYNTAKS
-;;a)
 
 ;;-----Kopier av kode fra evaluator.scm, med våre endringer------
 (define (eval-special-form exp env)
@@ -89,6 +88,8 @@
         ((if? exp) (eval-if exp env))
         ;;3c) let:
         ((let? exp)(mc-eval (let->lambda exp) env))
+        ;;3d) Alternativ let:
+        ((alt-let? exp)(mc-eval (alt-let exp env)))
         ((lambda? exp)
          (make-procedure (lambda-parameters exp)
                          (lambda-body exp)
@@ -107,6 +108,7 @@
         ((if? exp) #t)
         ;;3c) let:
         ((let? exp) #t)
+        ((alt-let? exp) #t)
         ((lambda? exp) #t)
         ((begin? exp) #t)
         ((cond? exp) #t)
@@ -116,8 +118,9 @@
         ;;3b) Alternativ if:
         ((alt-if? exp) #t)
         (else #f)))
-
 ;;------------------------------- Kopier slutt.
+
+;;a)
 
 (define (and? exp)(tagged-list? exp 'and))
 
@@ -150,7 +153,7 @@
     (car exps))
   (define (or-rest exps)
     (cdr exps))
-  
+  ;; Evaluer til noe blir true, eller til vi er gått tom for operander:
   (define (eval-ops exps)
     (if (null? exps)
         'false
@@ -163,21 +166,26 @@
 
 ;;b)
 
+(define (alt-if? exp)(and (tagged-list? (cddr exp) 'then)
+                          (tagged-list? exp 'if)))
+;;Syntaks: (if <predikat> then <utfall> elsif <predikat> then <utfall> ... else <utfall>)
+;;elsif er ikke obligatorisk, alle andre ledd er obligatoriske.
+;;Test-uttrykk til meta-REPLet eval-alt-if (copy-paste dem inn):
 ;;Test-exp 0: (if #f then 'bleh else 'feh)
 ;;Test-exp 1: (if #t then 'bleh elsif #t then 'meh else 'feh)
 ;;Test-exp 2: (if #f then 'bleh elsif #t then 'meh else 'feh)
 ;;Test-exp 3: (if #f then 'bleh elsif #f then 'meh else 'feh)
 ;;Test-exp 4: (if #f then 'bleh elsif #f then 'meh elsif #f then 'eh else 'DEAL_WITH_IT.)
-(define (alt-if? exp)(and (tagged-list? (cddr exp) 'then)
-                          (tagged-list? exp 'if)))
+;;Returverdi exp 1 - 3: Utfallet etter "#t then". 
+;;Returverdi exp 0 og 4: Utfallet etter "else".
 
-  ;;Selektorer og base-case predikat:
-  (define (alt-if-conseq exps);; if-consequent funker ikke pga then; vi må hoppe over.
-    (car (cdr (cdr (cdr exps)))))
-  (define (next-pred exps);; Hopp til neste predikat.
-    (cdr (cdr (cdr (cdr exps)))))
-  (define (else? exps);; else markerer slutten av uttrykket.
-    (eq? (car exps) 'else))
+;;Selektorer og base-case predikat (disse er globale for å kunne testes):
+(define (alt-if-conseq exps);; if-consequent funker ikke pga then; vi må hoppe over.
+  (car (cdr (cdr (cdr exps)))))
+(define (next-pred exps);; Hopp til neste predikat.
+  (cdr (cdr (cdr (cdr exps)))))
+(define (else? exps);; else markerer slutten av uttrykket.
+  (eq? (car exps) 'else))
 
 (define (eval-alt-if exp env)
   ;; Merk at det ikke tas høyde for at else utelates (dette fører til rekursjonsbrønn).
@@ -191,14 +199,73 @@
 
 ;;c)
 
-(define (let? exp)(tagged-list? exp 'let))
-;;Test-exp 1: (let ((one (- 2 1))(two (+ 1 1)))(+ two one))
-;;Expected result: 3
-          
+(define (let? exp)(and (tagged-list? exp 'let)
+                       (pair? (cadr exp))));; MERK: Vi støtter både vanlig og alternativ let.
+
+;;Copy-paste returverdien av (let->lambda <test-exp>) inn i meta-REPLet for å verifisere.
+
+(define let-test-exp0 '(let ((one (- 2 1))(two (+ 1 1)))(+ two one)))
+;;Returverdi: 3, ekvivalent lambda: ((lambda (one two)(+ two one))(- 2 1)(+ 1 1))
+
 (define (let->lambda exp)
   (let ((bindings (cadr exp)) ;; Listen over par av bindinger, <var><exp>...
         (body (cddr exp)));; Selve prosedyrekroppen. 
     (let ((parameters (map car bindings));; Plukker ut parameterne (<var>) fra bindingsparene...
           (expressions (map cadr bindings))) ;; ...og uttrykkene (<exp>)...
       ;; ... og klistrer det hele sammen til et lambda-uttrykk med uttrykkene som argumenter.
-      (cons (make-lambda parameters body) expressions)))) 
+      (cons (make-lambda parameters body) 
+            expressions))))
+
+;;d) 
+
+(define (alt-let? exp)(tagged-list? exp 'let))
+;;Merk at let? evalueres FØR alt-let? i eval-special-form.
+;;Syntaks: (let <var1> = <exp1> and <var2> = <exp2> and ... <varn> = <expn> in <body>)
+;;and er ikke obligatorisk, alle andre ledd er obligatoriske.
+;;Copy-paste returverdiene av (alt-let <test-exp>) inn i meta-replet for å verifisere.
+
+(define al-test-exp0 '(let one = 1 and two = 2 and three = 3 in (+ one two three)))
+;;Returverdi: 6, ekvivalent lambda: ((lambda (one two three) (+ one two three)) 1 2 3)
+
+(define al-test-exp1 '(let one = 1 in (+ one one)))
+;;Returverdi: 2, ekvivalent lambda: ((lambda (one) (+ one one)) 1)
+
+(define al-test-exp2 '(let three = (- 4 1) and two = (+ 1 1) in (* three two)))
+;;Returverdi: 6, ekvivalent lambda: ((lambda (three two) (* three two)) (- 4 1) (+ 1 1))
+
+;;***Abstraksjonsbarriere***
+;;Selektorer:
+(define (variable exp)
+  (cadr exp))
+(define (expression exp)
+  (car (cdr (cdr (cdr exp)))))
+(define (next-var exp)
+  (cdr (cdr (cdr (cdr exp)))))
+
+;;Base-case for konstruktorene:
+(define (body? exp)
+  (eq? (car exp) 'in))
+
+;;Konstruktorer
+(define (make-parameters exp)
+  (if (body? exp)
+      '()
+      (cons (variable exp)
+            (make-parameters (next-var exp)))))
+(define (make-expressions exp)
+  (if (body? exp)
+      '()
+      (cons (expression exp)
+            (make-expressions (next-var exp)))))
+(define (get-body exp)
+  (if (body? exp)
+      (cdr exp)
+      (get-body (cdr exp))))
+               
+(define (alt-let exp)
+  ;;Samme prosedyre som vanlig let, bare at vi ikke har bindingene.
+  (let ((parameters (make-parameters exp))
+        (expressions (make-expressions exp))
+        (body (get-body exp)))
+    (cons (make-lambda parameters body) 
+          expressions)))
